@@ -1,0 +1,148 @@
+#!/bin/bash
+
+# ==========================================
+# RETRO STYLING & COLORS
+# ==========================================
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+clear
+
+echo -e "${CYAN}${BOLD}"
+echo "███╗   ███╗██╗   ██╗███████╗██╗ ██████╗██████╗  ██████╗ ████████╗"
+echo "████╗ ████║██║   ██║██╔════╝██║██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝"
+echo "██╔████╔██║██║   ██║███████╗██║██║     ██████╔╝██║   ██║   ██║   "
+echo "██║╚██╔╝██║██║   ██║╚════██║██║██║     ██╔══██╗██║   ██║   ██║   "
+echo "██║ ╚═╝ ██║╚██████╔╝███████║██║╚██████╗██████╔╝╚██████╔╝   ██║   "
+echo "╚═╝     ╚═╝ ╚═════╝ ╚══════╝╚═╝ ╚═════╝╚═════╝  ╚═════╝    ╚═╝   "
+echo -e "${MAGENTA}=================================================================${NC}"
+echo -e "${YELLOW}[+] SYSTEM INITIALIZATION & AUTO-INSTALLER STARTED...${NC}"
+sleep 1
+
+# ==========================================
+# 1. DEPENDENCY CHECKER
+# ==========================================
+echo -e "\n${CYAN}[*] Mengecek System Requirements...${NC}"
+
+REQUIRED_PKGS="python3 python3-pip ffmpeg neofetch unzip"
+MISSING_PKGS=""
+
+for pkg in $REQUIRED_PKGS; do
+    if ! command -v $pkg &> /dev/null && ! dpkg -s $pkg >/dev/null 2>&1; then
+        echo -e "${RED}[-] $pkg : TIDAK DITEMUKAN!${NC}"
+        MISSING_PKGS="$MISSING_PKGS $pkg"
+    else
+        echo -e "${GREEN}[+] $pkg : TERINSTALL${NC}"
+    fi
+    sleep 0.2
+done
+
+if [ ! -z "$MISSING_PKGS" ]; then
+    echo -e "\n${YELLOW}[!] Peringatan: Beberapa library belum terinstall (${MISSING_PKGS}).${NC}"
+    read -p "$(echo -e ${CYAN}"[?] Apakah Anda ingin menginstallnya sekarang? (y/n): "${NC})" install_pkg
+    
+    if [[ "$install_pkg" == "y" || "$install_pkg" == "Y" ]]; then
+        echo -e "${MAGENTA}[*] Menjalankan Auto-Installer (Membutuhkan akses root/sudo)...${NC}"
+        sudo apt-get update
+        sudo apt-get install -y $MISSING_PKGS
+        echo -e "${GREEN}[+] Instalasi library sistem selesai!${NC}"
+    else
+        echo -e "${RED}[!] Instalasi dibatalkan. Bot mungkin tidak akan berjalan normal.${NC}"
+    fi
+fi
+
+# ==========================================
+# 2. EXTRACT BOT ZIP FILE
+# ==========================================
+echo -e "\n${CYAN}[*] Mengecek File Source Code Bot...${NC}"
+ZIP_FILE=$(ls *.zip 2>/dev/null | head -n 1)
+
+if [ ! -z "$ZIP_FILE" ]; then
+    echo -e "${YELLOW}[!] Ditemukan file arsip: $ZIP_FILE${NC}"
+    read -p "$(echo -e ${CYAN}"[?] Ekstrak dan hapus file Zip ini? (y/n): "${NC})" unzip_pkg
+    
+    if [[ "$unzip_pkg" == "y" || "$unzip_pkg" == "Y" ]]; then
+        echo -e "${MAGENTA}[*] Mengekstrak $ZIP_FILE...${NC}"
+        unzip -o "$ZIP_FILE"
+        rm "$ZIP_FILE"
+        echo -e "${GREEN}[+] Ekstraksi selesai dan file Zip telah dihapus!${NC}"
+    fi
+else
+    echo -e "${GREEN}[+] File Zip tidak ditemukan, melewati tahap ekstraksi.${NC}"
+fi
+
+# ==========================================
+# 3. INSTALL PYTHON REQUIREMENTS
+# ==========================================
+if [ -f "requirements.txt" ]; then
+    echo -e "\n${CYAN}[*] Menginstall Python Requirements...${NC}"
+    # Menggunakan --break-system-packages untuk VPS modern (Ubuntu 23+ / Debian 12+) 
+    # agar tidak bentrok dengan PEP 668 (Bisa dihapus jika OS lama)
+    pip3 install -r requirements.txt --break-system-packages || pip3 install -r requirements.txt
+    echo -e "${GREEN}[+] Library Python berhasil diinstall!${NC}"
+else
+    echo -e "\n${RED}[-] requirements.txt tidak ditemukan! Melewati...${NC}"
+fi
+
+# ==========================================
+# 4. ENVIRONMENT SETUP (.env)
+# ==========================================
+echo -e "\n${CYAN}[*] Mengecek Konfigurasi Environment (.env)...${NC}"
+
+if [ ! -f ".env" ] || [ ! -s ".env" ]; then
+    echo -e "${YELLOW}[!] File .env tidak ditemukan atau kosong.${NC}"
+    read -p "$(echo -e ${CYAN}"[?] Apakah Anda ingin membuat .env sekarang? (y/n): "${NC})" create_env
+    
+    if [[ "$create_env" == "y" || "$create_env" == "Y" ]]; then
+        echo -e "${MAGENTA}[*] Memulai Setup Environment (Tekan Enter jika ingin mengosongkan)...${NC}"
+        
+        read -p "API_ID: " ENV_API_ID
+        read -p "API_HASH: " ENV_API_HASH
+        read -p "BOT_TOKEN: " ENV_BOT_TOKEN
+        read -p "SESSION (Pyrogram/Telethon): " ENV_SESSION
+        read -p "ADMIN_ID (ID Telegram Anda): " ENV_ADMIN_ID
+        read -p "CREDIT_CHANNEL (Link Channel): " ENV_CREDIT_CHANNEL
+        read -p "FSUB_CHANNEL (Username Channel FSub, opsional): " ENV_FSUB_CHANNEL
+        
+        cat <<EOF > .env
+API_ID=$ENV_API_ID
+API_HASH=$ENV_API_HASH
+BOT_TOKEN=$ENV_BOT_TOKEN
+SESSION=$ENV_SESSION
+ADMIN_ID=$ENV_ADMIN_ID
+CREDIT_CHANNEL=$ENV_CREDIT_CHANNEL
+FSUB_CHANNEL=$ENV_FSUB_CHANNEL
+EOF
+        echo -e "${GREEN}[+] File .env berhasil dibuat!${NC}"
+    else
+        echo -e "${RED}[!] Setup .env dilewati. Pastikan Anda membuatnya secara manual.${NC}"
+    fi
+else
+    echo -e "${GREEN}[+] File .env sudah ada dan siap!${NC}"
+fi
+
+# ==========================================
+# 5. NEOFETCH & RUN BOT
+# ==========================================
+echo -e "\n${MAGENTA}=================================================================${NC}"
+if command -v neofetch &> /dev/null; then
+    neofetch
+fi
+echo -e "${MAGENTA}=================================================================${NC}"
+
+echo -e "\n${GREEN}${BOLD}[+] SEMUA PERSIAPAN SELESAI!${NC}"
+read -p "$(echo -e ${CYAN}"[?] Jalankan bot sekarang? (y/n): "${NC})" run_bot
+
+if [[ "$run_bot" == "y" || "$run_bot" == "Y" ]]; then
+    echo -e "${YELLOW}[*] Memulai Python Engine...${NC}"
+    sleep 1
+    python3 main.py
+else
+    echo -e "${CYAN}[*] Anda bisa menjalankan bot nanti dengan perintah: python3 main.py${NC}"
+fi
