@@ -51,7 +51,7 @@ Kami telah menyediakan skrip *Auto-Installer* berdesain modern untuk memudahkan 
 
 1. **Clone Repositori ini:**
    ```bash
-   git clone [MusicBot](https://github.com/mekvji/VallMusicBot.git)
+   git clone https://github.com/mekvji/VallMusicBot.git
    cd VallMusicBot
    bash start
    
