@@ -50,6 +50,7 @@ Sebelum melakukan instalasi, pastikan server Anda memiliki komponen berikut:
 Kami telah menyediakan skrip *Auto-Installer* berdesain modern untuk memudahkan proses *deployment*. Skrip ini akan otomatis mengecek dependensi, membuat environment, dan menjalankan bot Anda.
 
 1. **Clone Repositori ini:**
+   ```bash
    git clone [MusicBot](https://github.com/mekvji/VallMusicBot.git)
    cd VallMusicBot
    bash start
